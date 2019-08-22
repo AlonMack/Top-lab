@@ -17,6 +17,7 @@ lazy val root = (project in file("."))
       "io.circe" %% "circe-core" % circeVersion,
       "io.circe" %% "circe-generic" % circeVersion,
       "io.circe" %% "circe-parser" % circeVersion,
+      "org.mongodb.scala" %% "mongo-scala-driver" % "2.7.0",
       "org.slf4j" % "slf4j-simple" % "1.7.28",
       scalaTest % Test
     )
