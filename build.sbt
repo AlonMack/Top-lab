@@ -1,21 +1,23 @@
 import Dependencies._
 
-
-val Http4sVersion = "0.20.10"
-val Json4sVersion ="3.1.0"
+lazy val circeVersion = "0.5.1"
+lazy val http4sVersion = "0.14.6"
 
 lazy val root = (project in file("."))
   .settings(
     organization in ThisBuild := "co.toplab",
-    scalaVersion in ThisBuild := "2.12.7",
+    scalaVersion in ThisBuild := "2.11.8",
     version in ThisBuild := "0.1.0-SNAPSHOT",
     name := "Top_lab",
     libraryDependencies ++= Seq(
-      "org.http4s" %% "http4s-blaze-server" % Http4sVersion,
-      "org.http4s" %% "http4s-dsl" % Http4sVersion,
-      "org.http4s" %% "http4s-twirl" % Http4sVersion,
-      "org.json4s" %% "json4s-jackson" % "3.2.11",
-      "org.json4s" %% "json4s-ext" % "3.2.11",
-    ),
-    libraryDependencies += scalaTest % Test
+      "org.http4s" %% "http4s-dsl" % http4sVersion,
+      "org.http4s" %% "http4s-blaze-server" % http4sVersion,
+      "org.http4s" %% "http4s-blaze-client" % http4sVersion,
+      "org.http4s" %% "http4s-circe" % http4sVersion,
+      "io.circe" %% "circe-core" % circeVersion,
+      "io.circe" %% "circe-generic" % circeVersion,
+      "io.circe" %% "circe-parser" % circeVersion,
+      "org.slf4j" % "slf4j-simple" % "1.7.28",
+      scalaTest % Test
+    )
   )

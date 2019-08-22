@@ -1,6 +1,8 @@
 package co.toplab
 
+import co.toplab.UserService.UserSorting
 import co.toplab.model.User
+import scalaz.concurrent.Task
 
 object UserService extends UserService {
 
