@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ScalaCompilerConfiguration">
-    <profile name="sbt 1" modules="Hello,Titanum_labs_test,Top_lab,http4s-crud-demo,titanum_labs_test_7277" />
-  </component>
-</project>
