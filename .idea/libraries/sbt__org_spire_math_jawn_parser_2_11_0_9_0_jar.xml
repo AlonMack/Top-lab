@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="sbt: org.spire-math:jawn-parser_2.11:0.9.0:jar">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../.ivy2/cache/org.spire-math/jawn-parser_2.11/jars/jawn-parser_2.11-0.9.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../.ivy2/cache/org.spire-math/jawn-parser_2.11/srcs/jawn-parser_2.11-0.9.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
