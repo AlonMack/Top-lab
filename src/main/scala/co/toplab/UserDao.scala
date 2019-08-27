@@ -1,19 +1,12 @@
 package co.toplab
 
-import co.toplab.model.User
-import org.bson.codecs.DecoderContext
-import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
-import org.bson.codecs.configuration.CodecRegistry
-import org.bson.{BsonDocumentReader, BsonDocumentWrapper}
-import org.mongodb.scala.bson.codecs.{DEFAULT_CODEC_REGISTRY, Macros}
 import org.mongodb.scala.model.Filters
 import org.mongodb.scala.model.Sorts._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.{Completed, Document, MongoClient, MongoCollection, MongoDatabase, Observable, Observer}
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.reflect.classTag
+import scala.concurrent.{Await, Future}
 
 object UserDao {
 
@@ -24,11 +17,8 @@ object UserDao {
   }
 
 
-  def save(user: User): Long = {
+  def save(username: String, email: String, age: Int): Document = {
     val id = Await.result(UserCollection.collection.countDocuments().toFuture(), 10.second)
-    val username = user.username
-    val email = user.email
-    val age = user.age
     val document: Document = Document(
       "id" -> id,
       "username" -> username,
@@ -44,45 +34,35 @@ object UserDao {
 
       override def onComplete(): Unit = println("onComplete")
     })
-    id
+    document
   }
 
-  def find(id: Long): Option[User] = {
-    val eventualDocuments = UserCollection.collection.find(Filters.eq("id", id)).toFuture()
-    val document = Await.result(eventualDocuments, 10.second).head
-    val user: User = convertToUser(document)
-    Option(user)
+  def findById(id: Long): Future[Option[Document]] = {
+    UserCollection.collection.find(Filters.eq("id", id)).first().toFutureOption()
   }
 
-  private def convertToUser(document: Document) = {
-    val personCodecProvider = Macros.createCodecProvider[User]()
-    val codecRegistry: CodecRegistry = fromRegistries(fromProviders(personCodecProvider), DEFAULT_CODEC_REGISTRY)
-    val bsonDocument = BsonDocumentWrapper.asBsonDocument(document, DEFAULT_CODEC_REGISTRY)
-
-    val bsonReader = new BsonDocumentReader(bsonDocument)
-    val decoderContext = DecoderContext.builder.build
-    val codec = codecRegistry.get(classTag[User].runtimeClass)
-    codec.decode(bsonReader, decoderContext).asInstanceOf[User]
+  def findByUserName(username: String): Future[Option[Document]] = {
+    UserCollection.collection.find(Filters.eq("username", username)).first().toFutureOption()
   }
 
-  def findAll(sort: Option[String]): List[User] =  {
-  def from(sort: Option[String]) = sort match {
-  case Some(v) if v.equalsIgnoreCase("desc")  => descending("id")
-  case _                                      => ascending("id")
-  }
-    val result = UserCollection.collection.find()
+
+  def findAll(sort: Option[String]): Future[Seq[Document]] = {
+    def from(sort: Option[String]) = sort match {
+      case Some(v) if v.equalsIgnoreCase("desc") => descending("id")
+      case _ => ascending("id")
+    }
+
+    UserCollection.collection.find()
       .sort(from(sort))
       .toFuture()
-    val reports = Await.result(result, 10.second)
-    reports.map(convertToUser).toList
   }
 
   def remove(id: Long): Unit = {
-      Await.result(
-        UserCollection.collection
-          .deleteOne(Filters.eq("id", id))
-          .toFuture,
-        10.second)
+    Await.result(
+      UserCollection.collection
+        .deleteOne(Filters.eq("id", id))
+        .toFuture,
+      10.second)
   }
 
   def editAge(id: Long, age: Int): Unit = {

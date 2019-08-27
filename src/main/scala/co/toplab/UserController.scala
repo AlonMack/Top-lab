@@ -1,21 +1,30 @@
 package co.toplab
 
 import co.toplab.UserService.{DuplicatedUsernameException, UserNotFoundException}
-import co.toplab.model.User;
-import io.circe._
-import io.circe.generic.auto._
+import co.toplab.model.{UserAge, UserForm}
 import org.http4s._
-import org.http4s.circe._
-import org.http4s.dsl._
+import org.http4s.dsl.{Conflict, _}
+import org.http4s.json4s.native._
+import org.json4s.native.Serialization.write
+import org.json4s.{JValue, Reader, _}
 import scalaz.concurrent.Task
 
-import scala.util.Random
-
 object UserController {
+  implicit val fmt: DefaultFormats.type = org.json4s.DefaultFormats
 
-  implicit def circeJsonDecoder[A](implicit decoder: Decoder[A]) = jsonOf[A]
+  implicit val userFormReader: Reader[UserForm] = new Reader[UserForm] {
+    def read(value: JValue): UserForm = {
+      value.extract[UserForm]
+    }
+  }
+  implicit val userFormDec: EntityDecoder[UserForm] = jsonOf[UserForm]
 
-  implicit def circeJsonEncoder[A](implicit encoder: Encoder[A]) = jsonEncoderOf[A]
+  implicit val userAgeReader: Reader[UserAge] = new Reader[UserAge] {
+    def read(value: JValue): UserAge = {
+      value.extract[UserAge]
+    }
+  }
+  implicit val userAgeDec: EntityDecoder[UserAge] = jsonOf[UserAge]
 
   object SortQueryParamMatcher extends OptionalQueryParamDecoderMatcher[String]("sort")
 
@@ -26,20 +35,19 @@ object UserController {
 
   val service = HttpService {
     case GET -> Root / "users" :? SortQueryParamMatcher(sort) =>
-      Ok(UserService.findAll(sort))
+      UserService.findAll(sort).flatMap(users => Ok(write(users)))
     case req@POST -> Root / "users" =>
-      req.decode[User] { userForm =>
-        val user = User(Random.nextInt(1000), userForm.username, userForm.email, userForm.age)
-        UserService.save(user).flatMap(_ => Created(s"User with id: ${user.id}")).handleWith(errorHandler)
+      req.decode[UserForm] { user =>
+        val result = UserService.save(user.username, user.email, user.age)
+        result.flatMap(user => Created(user.id.toString)).handleWith(errorHandler)
       }
     case GET -> Root / "users" / LongVar(id) =>
-      Ok(UserService.find(id)).handleWith(errorHandler)
+      UserService.findById(id).flatMap(users => Ok(write(users))).handleWith(errorHandler)
     case DELETE -> Root / "users" / LongVar(id) =>
       UserService.remove(id).flatMap(_ => NoContent()).handleWith(errorHandler)
     case req@PUT -> Root / "users" / LongVar(id) =>
-      req.decode[User] { ageForm =>
-        UserService.edit(id, ageForm.age).flatMap(_ => Accepted()).handleWith(errorHandler)
+      req.decode[UserAge] { userAge =>
+        UserService.edit(id, userAge.age).flatMap(_ => Accepted()).handleWith(errorHandler)
       }
   }
-
 }
