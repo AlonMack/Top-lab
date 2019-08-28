@@ -1,19 +1,19 @@
-package co.toplab
+package co.toplab.user
 
 import org.mongodb.scala.model.Filters
-import org.mongodb.scala.model.Sorts._
-import org.mongodb.scala.model.Updates._
+import org.mongodb.scala.model.Sorts.{ascending, descending}
+import org.mongodb.scala.model.Updates.set
+import scala.concurrent.duration._
 import org.mongodb.scala.{Completed, Document, MongoClient, MongoCollection, MongoDatabase, Observable, Observer}
 
-import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
 object UserDao {
 
   object UserCollection {
     val client: MongoClient = MongoClient()
-    val database: MongoDatabase = client.getDatabase("mydb")
-    val collection: MongoCollection[Document] = database.getCollection("mycoll")
+    val database: MongoDatabase = client.getDatabase("UserDb")
+    val collection: MongoCollection[Document] = database.getCollection("UserCollection")
   }
 
 
@@ -28,11 +28,9 @@ object UserDao {
     val insertObservable: Observable[Completed] = UserCollection.collection.insertOne(document)
 
     insertObservable.subscribe(new Observer[Completed] {
-      override def onNext(result: Completed): Unit = println(s"onNext: $result")
-
-      override def onError(e: Throwable): Unit = println(s"onError: $e")
-
-      override def onComplete(): Unit = println("onComplete")
+      override def onNext(result: Completed): Unit = println("Inserted")
+      override def onError(e: Throwable): Unit = println("Failed")
+      override def onComplete(): Unit = println("Completed")
     })
     document
   }
@@ -72,5 +70,4 @@ object UserDao {
         .toFuture,
       10.second)
   }
-
 }
